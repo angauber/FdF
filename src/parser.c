@@ -6,7 +6,7 @@
 /*   By: angauber <angauber@student.le-101.fr>      +:+   +:    +:    +:+     */
 /*                                                 #+#   #+    #+    #+#      */
 /*   Created: 2019/03/06 18:27:22 by angauber     #+#   ##    ##    #+#       */
-/*   Updated: 2019/03/07 17:42:30 by angauber    ###    #+. /#+    ###.fr     */
+/*   Updated: 2019/03/19 16:31:35 by angauber    ###    #+. /#+    ###.fr     */
 /*                                                         /                  */
 /*                                                        /                   */
 /* ************************************************************************** */
@@ -15,9 +15,9 @@
 
 void	count_lines(t_map *map, int fd)
 {
-	char *line;
-	int i;
-	
+	char	*line;
+	int		i;
+
 	line = NULL;
 	i = 0;
 	while (get_next_line(fd, &line) > 0)
@@ -34,21 +34,22 @@ int		count_numbers(t_map *map, char *line)
 {
 	int i;
 	int j;
-	
+
 	i = -1;
 	j = 0;
 	while (line[++i] != '\0')
 	{
-		if ((line[i] >= '0' && line[i] <= '9') && (i == 0 || line[i - 1] == ' '))
+		if (((line[i] >= '0' && line[i] <= '9') || line[i] == '-')
+		&& (i == 0 || line[i - 1] == ' '))
 		{
 			j++;
-			while (line[i] >= '0' && line[i] <= '9')
+			while ((line[i] >= '0' && line[i] <= '9') || line[i] == '-')
 				i++;
 		}
 	}
 	map->y = j;
 	return (j);
-} 
+}
 
 int		*parse_line(t_map *map, char *line)
 {
@@ -62,10 +63,15 @@ int		*parse_line(t_map *map, char *line)
 		return (NULL);
 	while (line[++i] != '\0')
 	{
-		if ((line[i] >= '0' && line[i] <= '9') && (i == 0 || line[i - 1] == ' '))
+		if (((line[i] >= '0' && line[i] <= '9') || line[i] == '-')
+		&& (i == 0 || line[i - 1] == ' '))
 		{
 			current[j] = ft_atoi(&(line[i]));
-			j++;	
+			if (current[j] < map->zmin)
+				map->zmin = current[j];
+			if (current[j] > map->zmax)
+				map->zmax = current[j];
+			j++;
 		}
 	}
 	return (current);
@@ -83,6 +89,8 @@ void	parse_map(int fd, char *file, char *line)
 	fd = open(file, O_RDONLY);
 	if ((map->table = malloc(sizeof(int*) * map->x)) == NULL)
 		return ;
+	map->zmin = 0;
+	map->zmax = 0;
 	while (get_next_line(fd, &line) != 0)
 	{
 		map->table[i] = parse_line(map, line);
@@ -93,7 +101,7 @@ void	parse_map(int fd, char *file, char *line)
 
 int		main(int ac, char **av)
 {
-	int 	fd;
+	int		fd;
 	char	*line;
 
 	line = NULL;
@@ -106,8 +114,6 @@ int		main(int ac, char **av)
 	if (fd != -1)
 		parse_map(fd, av[1], line);
 	else
-	{
 		ft_printf("Wrong map format\n");
-	}
 	return (0);
 }
